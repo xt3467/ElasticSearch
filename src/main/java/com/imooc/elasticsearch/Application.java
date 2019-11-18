@@ -1,6 +1,11 @@
 package com.imooc.elasticsearch;
 
-import org.apache.lucene.queryparser.flexible.core.builders.QueryBuilder;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -16,7 +21,6 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +29,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Created by corning on 2018/3/5.
@@ -70,24 +74,16 @@ public class Application {
 
     // 增加接口
     @PostMapping("/add/book/novel")
-    public ResponseEntity add(
-            @RequestParam(name = "title") String title,
-            @RequestParam(name = "author") String author,
-            @RequestParam(name = "word_count") int wordCount,
-            @RequestParam(name = "publish_date")
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date publishDate) {
+    public ResponseEntity add(@RequestParam(name = "title") String title, @RequestParam(name = "author") String author,
+        @RequestParam(name = "word_count") int wordCount,
+        @RequestParam(name = "publish_date") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date publishDate) {
 
         try {
-            XContentBuilder content = XContentFactory.jsonBuilder().startObject()
-                    .field("title", title)
-                    .field("author", author)
-                    .field("word_count", wordCount)
-                    .field("publish_date", publishDate.getTime())
-                    .endObject();
+            XContentBuilder content =
+                XContentFactory.jsonBuilder().startObject().field("title", title).field("author", author)
+                    .field("word_count", wordCount).field("publish_date", publishDate.getTime()).endObject();
 
-            IndexResponse response = client.prepareIndex(BOOK_INDEX, BOOK_TYPE_NOVEL)
-                    .setSource(content)
-                    .get();
+            IndexResponse response = client.prepareIndex(BOOK_INDEX, BOOK_TYPE_NOVEL).setSource(content).get();
 
             return new ResponseEntity(response.getId(), HttpStatus.OK);
         } catch (IOException e) {
@@ -105,17 +101,14 @@ public class Application {
         return new ResponseEntity(response.getResult().toString(), HttpStatus.OK);
     }
 
-
     // 更新接口
     @PutMapping("/update/book/novel")
     @ResponseBody
-    public ResponseEntity update(
-            @RequestParam(name = "id") String id,
-            @RequestParam(name = "title", required = false) String title,
-            @RequestParam(name = "author", required = false) String author,
-            @RequestParam(name = "word_count", required = false) Integer wordCount,
-            @RequestParam(name = "publish_date", required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date publishDate) {
+    public ResponseEntity update(@RequestParam(name = "id") String id,
+        @RequestParam(name = "title", required = false) String title,
+        @RequestParam(name = "author", required = false) String author,
+        @RequestParam(name = "word_count", required = false) Integer wordCount, @RequestParam(name = "publish_date",
+            required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date publishDate) {
 
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().startObject();
@@ -148,11 +141,10 @@ public class Application {
     // 复合查询
     @PostMapping("query/book/novel")
     @ResponseBody
-    public ResponseEntity query(
-            @RequestParam(name = "author", required = false) String author,
-            @RequestParam(name = "title", required = false) String title,
-            @RequestParam(name = "gt_word_count", defaultValue = "0") int gtWordCount,
-            @RequestParam(name = "lt_word_count", required = false) Integer ltWordCount) {
+    public ResponseEntity query(@RequestParam(name = "author", required = false) String author,
+        @RequestParam(name = "title", required = false) String title,
+        @RequestParam(name = "gt_word_count", defaultValue = "0") int gtWordCount,
+        @RequestParam(name = "lt_word_count", required = false) Integer ltWordCount) {
 
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
@@ -171,10 +163,7 @@ public class Application {
         boolQuery.filter(rangeQuery);
 
         SearchRequestBuilder builder = client.prepareSearch(BOOK_INDEX).setTypes(BOOK_TYPE_NOVEL)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(boolQuery)
-                .setFrom(0)
-                .setSize(10);
+            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(boolQuery).setFrom(0).setSize(10);
 
         logger.debug(builder.toString());
 
@@ -189,4 +178,16 @@ public class Application {
 
     }
 
+    // 复合查询
+    @PostMapping("filter/book/novel")
+    @ResponseBody
+    public ResponseEntity filter(@RequestParam(name = "author", required = false) String author,
+        @RequestParam(name = "title", required = false) String title,
+        @RequestParam(name = "gt_word_count", defaultValue = "0") int gtWordCount,
+        @RequestParam(name = "lt_word_count", required = false) Integer ltWordCount) {
+        SearchRequestBuilder builder = client.prepareSearch(BOOK_INDEX).setTypes(BOOK_TYPE_NOVEL);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+        // boolQuery.filter(queryBuilder)
+        return null;
+    }
 }
