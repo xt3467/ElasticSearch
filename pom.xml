@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.imooc</groupId>
-    <artifactId>ElasticSearch</artifactId>
+    <artifactId>elasticsearch-learning</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
 
@@ -22,13 +22,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dependency.version>LATEST</dependency.version>
-        <elasticsearch.version>6.2.2</elasticsearch.version>
+        <elasticsearch.version>6.8.4</elasticsearch.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.6.RELEASE</version>
+        <version>2.1.1.RELEASE</version>
     </parent>
 
     <dependencies>
