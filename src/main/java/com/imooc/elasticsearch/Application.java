@@ -52,7 +52,7 @@ public class Application {
     }
 
     public static final String BOOK_INDEX = "book";
-    public static final String BOOK_TYPE_NOVEL = "novel";
+    public static final String BOOK_TYPE_NOVEL = "xiaoshuo";
 
     @Autowired
     private TransportClient client;
@@ -179,15 +179,18 @@ public class Application {
     }
 
     // 复合查询
-    @PostMapping("filter/book/novel")
+    @GetMapping("filter/book/novel")
     @ResponseBody
     public ResponseEntity filter(@RequestParam(name = "author", required = false) String author,
-        @RequestParam(name = "title", required = false) String title,
-        @RequestParam(name = "gt_word_count", defaultValue = "0") int gtWordCount,
-        @RequestParam(name = "lt_word_count", required = false) Integer ltWordCount) {
+        @RequestParam(name = "title", required = false) String title) {
         SearchRequestBuilder builder = client.prepareSearch(BOOK_INDEX).setTypes(BOOK_TYPE_NOVEL);
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-        // boolQuery.filter(queryBuilder)
-        return null;
+        boolQuery.filter(QueryBuilders.termQuery("author.keyword", author));
+        SearchResponse response = builder.get();
+        List result = new ArrayList<Map<String, Object>>();
+        for (SearchHit hit : response.getHits()) {
+            result.add(hit.getSourceAsMap());
+        }
+        return new ResponseEntity(result, HttpStatus.OK);
     }
 }
