@@ -21,6 +21,11 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.pipeline.bucketsort.BucketSortPipelineAggregationBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,6 +196,11 @@ public class Application {
         for (SearchHit hit : response.getHits()) {
             result.add(hit.getSourceAsMap());
         }
+        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms("group_name").field("field.keyword").size(99999);
+        termsBuilder.subAggregation(AggregationBuilders.sum("sum_field").field("money"));
+        List<FieldSortBuilder> fieldSorts=new ArrayList<>();
+        fieldSorts.add(new FieldSortBuilder("sum_field").order(SortOrder.DESC));
+        termsBuilder.subAggregation(new BucketSortPipelineAggregationBuilder("bucket_field", fieldSorts).from(6000).size(10));
         return new ResponseEntity(result, HttpStatus.OK);
     }
 }
